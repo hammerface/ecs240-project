@@ -31,7 +31,7 @@
 {\large ECS240 - Fall 2026}
 
 \medbreak
-{\large Prom TODO, Qingze He, Jim Brower}
+{\large Pramodya Rajapakse, Qingze He, Jim Brower}
 \end{center}
 \vspace{1em}
 
@@ -50,24 +50,32 @@
 \textbf{Problem domain and motivation.}
 % Application domain, problem being solved, why it is interesting.
 % At least 3 citations, at least 2 research papers.
+\newline
+Our project’s application domain is concurrent and distributed systems computing. The problem we’re tackling is modeling concurrency using message passing as a means to address many of the issues with traditional shared-memory frameworks. Using threads and locks to assure data correctness historically led to many issues like race conditions, deadlock, and unpredictable operations. Many platforms have switched to a message passing framework with “actor” agents and fault tolerance, and we’d like to explore a conceptual language with native support for this type of system.
 
 \item
 \textbf{Proposed language.}
 % Own toy language, or a subset of an existing language?
 % What it contains / what subset of features. Example syntax.
+\newline
+We plan to design a custom language built around an actor agent model with the capability for agents to communicate via message passing. Beyond primitives and standard control flow operations, the core feature would be maintaining lightweight agents, each having the ability to perform tasks and send/receive messages from other agents.
 
-\begin{verbatim}
--- example program
-\end{verbatim}
+% \begin{verbatim}
+% -- example program
+% \end{verbatim}
 
 \item
 \textbf{Proposed tool.}
 % Basic interpreter + one of: compiler, static analysis, dynamic analysis, type system.
 % Input/output of the tool. How a user interacts with it.
+\newline
+The interpreter for our custom language would directly evaluate the program, printing the output of simulated agent interactions to the terminal. We also plan to implement a transpiler (code generator) for our language, taking a program in the toy language and converting it to Rust code. The input of the transpiler would be a program in the custom language, as an AST representation, and the output would be a separate Rust file which could be compiled and run. A user would interact with the tool through a lightweight CLI program, either running the interpreter on a program written in the toy language, or using the transpiler to convert it to a Rust file. 
 
 \item
 \textbf{Scope and related work.}
 % Is the solution already known/built? Existing tools for similar problems.
+\newline
+The overall model of using message passing for concurrency is well established, with languages like Erlang\cite{armstrong2003making} and Elixir\cite{elixir} being industry standard tools for implementing actors and fault tolerance. Erlang already has a robust framework for supporting message passing \cite{vinoskierlang2012}, and the success of using it on production level software has led to ongoing work to understand the bounds and limitations of message passing concurrency \cite{shi2025complexitytestingmessagepassingconcurrency}. There are many libraries which provide actors and asynchronous message passing tools, like Tokio\cite{tokio} but our concept is a language whose native syntax is entirely built around this framework.
 
 \end{enumerate}
 
@@ -85,14 +93,18 @@
 \medbreak
 \textbf{Minimum goal:}
 \newline
+The minimum goal is to have a working lexer and parser that would generate an AST from a text file written in our toy language. The interpreter would support concurrent actor execution with asynchronous message passing in a single thread, and the transpiler would convert to Rust’s native concurrency primitives. We would implement at least one scheduler. A user would have access to a simple CLI that supports running the interpreter and transpiler, and a few simple programs to test with.
 
 \medbreak
 \textbf{Target goal:}
 \newline
+The target goal would additionally have our language support more features like standard control flow and a few primitive data types. Our interpreter would have the option to use a few different schedulers. We would also aim to support a few more meaningful agent requests/tasks (like modifying its private data, sending information, messaging other agents, etc).
+
 
 \medbreak
 \textbf{Reach goal:}
 \newline
+Our reach goal would include everything from the Minimum and Target goals, but also have the processes communicate over the network through TCP. Would would also try to include some minor optimizations for the compiler, and if time permits, potentially explore a Consensus algorithm for fault tolerance.
 
 \bigbreak
 
@@ -298,7 +310,7 @@ Week of Dec 7:
 \textbf{Commitment statement:}
 
 \medbreak
-I commit to work and contribute equally to this project. \hfill --- Prom TODO
+I commit to work and contribute equally to this project. \hfill --- Pramodya Rajapakse
 
 \medbreak
 I commit to work and contribute equally to this project. \hfill --- Qingze He
