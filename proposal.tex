@@ -48,34 +48,41 @@
 
 \item
 \textbf{Problem domain and motivation.}
-% Application domain, problem being solved, why it is interesting.
-% At least 3 citations, at least 2 research papers.
-\newline
-Our project’s application domain is concurrent and distributed systems computing. The problem we’re tackling is modeling concurrency using message passing as a means to address many of the issues with traditional shared-memory frameworks. Using threads and locks to assure data correctness historically led to many issues like race conditions, deadlock, and unpredictable operations. Many platforms have switched to a message passing framework with “actor” agents and fault tolerance, and we’d like to explore a conceptual language with native support for this type of system.
+
+Our project's application domain is concurrent and distributed systems computing. The problem we're tackling is
+modeling concurrency using message passing as a means to address many of the issues with traditional shared-memory
+frameworks. Using threads and locks to assure data correctness historically led to many issues like race
+conditions, deadlock, and unpredictable operations. Many platforms have switched to a message passing framework
+with ``actor'' agents and fault tolerance, and we'd like to explore a conceptual language with native support for
+this type of system.
 
 \item
 \textbf{Proposed language.}
-% Own toy language, or a subset of an existing language?
-% What it contains / what subset of features. Example syntax.
-\newline
-We plan to design a custom language built around an actor agent model with the capability for agents to communicate via message passing. Beyond primitives and standard control flow operations, the core feature would be maintaining lightweight agents, each having the ability to perform tasks and send/receive messages from other agents.
 
-% \begin{verbatim}
-% -- example program
-% \end{verbatim}
+We plan to design a custom language built around an actor agent model with the capability for agents to communicate
+via message passing. Beyond primitives and standard control flow operations, the core feature would be maintaining
+lightweight agents, each having the ability to perform tasks and send/receive messages from other agents.
 
 \item
 \textbf{Proposed tool.}
-% Basic interpreter + one of: compiler, static analysis, dynamic analysis, type system.
-% Input/output of the tool. How a user interacts with it.
-\newline
-The interpreter for our custom language would directly evaluate the program, printing the output of simulated agent interactions to the terminal. We also plan to implement a transpiler (code generator) for our language, taking a program in the toy language and converting it to Rust code. The input of the transpiler would be a program in the custom language, as an AST representation, and the output would be a separate Rust file which could be compiled and run. A user would interact with the tool through a lightweight CLI program, either running the interpreter on a program written in the toy language, or using the transpiler to convert it to a Rust file. 
+
+The interpreter for our custom language would directly evaluate the program, printing the output of simulated agent
+interactions to the terminal. We also plan to implement a transpiler (code generator) for our language, taking a
+program in the toy language and converting it to Rust code. The input of the transpiler would be a program in the
+custom language, as an AST representation, and the output would be a separate Rust file which could be compiled and
+run. A user would interact with the tool through a lightweight CLI program, either running the interpreter on a
+program written in the toy language, or using the transpiler to convert it to a Rust file.
 
 \item
 \textbf{Scope and related work.}
-% Is the solution already known/built? Existing tools for similar problems.
-\newline
-The overall model of using message passing for concurrency is well established, with languages like Erlang\cite{armstrong2003making} and Elixir\cite{elixir} being industry standard tools for implementing actors and fault tolerance. Erlang already has a robust framework for supporting message passing \cite{vinoskierlang2012}, and the success of using it on production level software has led to ongoing work to understand the bounds and limitations of message passing concurrency \cite{shi2025complexitytestingmessagepassingconcurrency}. There are many libraries which provide actors and asynchronous message passing tools, like Tokio\cite{tokio} but our concept is a language whose native syntax is entirely built around this framework.
+
+The overall model of using message passing for concurrency is well established, with languages like
+Erlang\cite{armstrong2003making} and Elixir\cite{elixir} being industry standard tools for implementing actors and
+fault tolerance. Erlang already has a robust framework for supporting message passing\cite{vinoskierlang2012}, and
+the success of using it on production level software has led to ongoing work to understand the bounds and
+limitations of message passing concurrency\cite{shi2025complexitytestingmessagepassingconcurrency}. There are many
+libraries which provide actors and asynchronous message passing tools, like Tokio\cite{tokio}, but our concept is a
+language whose native syntax is entirely built around this framework.
 
 \end{enumerate}
 
@@ -88,23 +95,29 @@ The overall model of using message passing for concurrency is well established, 
 \item
 \textbf{Goals}
 
-% High-level goals, described in more detail in later sections.
-
 \medbreak
 \textbf{Minimum goal:}
 \newline
-The minimum goal is to have a working lexer and parser that would generate an AST from a text file written in our toy language. The interpreter would support concurrent actor execution with asynchronous message passing in a single thread, and the transpiler would convert to Rust’s native concurrency primitives. We would implement at least one scheduler. A user would have access to a simple CLI that supports running the interpreter and transpiler, and a few simple programs to test with.
+The minimum goal is to have a working lexer and parser that would generate an AST from a text file written in our
+toy language. The interpreter would support concurrent actor execution with asynchronous message passing in a
+single thread, and the transpiler would convert to Rust's native concurrency primitives. We would implement at
+least one scheduler. A user would have access to a simple CLI that supports running the interpreter and transpiler,
+and a few simple programs to test with.
 
 \medbreak
 \textbf{Target goal:}
 \newline
-The target goal would additionally have our language support more features like standard control flow and a few primitive data types. Our interpreter would have the option to use a few different schedulers. We would also aim to support a few more meaningful agent requests/tasks (like modifying its private data, sending information, messaging other agents, etc).
-
+The target goal would additionally have our language support more features like standard control flow and a few
+primitive data types. Our interpreter would have the option to use a few different schedulers. We would also aim to
+support a few more meaningful agent requests/tasks (like modifying its private data, sending information, messaging
+other agents, etc.).
 
 \medbreak
 \textbf{Reach goal:}
 \newline
-Our reach goal would include everything from the Minimum and Target goals, but also have the processes communicate over the network through TCP. Would would also try to include some minor optimizations for the compiler, and if time permits, potentially explore a Consensus algorithm for fault tolerance.
+Our reach goal would include everything from the minimum and target goals, but also have the processes communicate
+over the network through TCP. We would also try to include some minor optimizations for the compiler, and if time
+permits, potentially explore a consensus algorithm for fault tolerance.
 
 \bigbreak
 
@@ -115,8 +128,10 @@ Our reach goal would include everything from the Minimum and Target goals, but a
 \item
 \textbf{Theory: Syntax and Semantics}
 
-Our language enables multiple processes to communicate through message queues and provides serialization and deserialization operations. To be more specific, process A receives the initial input. It serializes the input and sends the serialized data to B. After process B receives it, the data will be deserialized. Then, B will print out the original information.
-
+Our language enables multiple processes to communicate through message queues and provides serialization and
+deserialization operations. To be more specific, process A receives the initial input. It serializes the input and
+sends the serialized data to B. After process B receives it, the data will be deserialized. Then, B will print out
+the original information.
 
 \begin{verbatim}
 process A {
@@ -150,9 +165,13 @@ T ::= process(p, S)
 P ::= T | pair(P, P)
 \end{verbatim}
 
-
-
-We have (INPUT, prog, OUTPUT). INPUT contains the initial data for each process, prog is the program, and OUTPUT is the sequence of printed values. Each process only needs to execute its own statements in sequence, without waiting for other processes to finish. For example, \texttt{send} adds the message to the end of the receiver's queue. The sender does not need to wait for a reply from the receiver. \texttt{receive} takes messages from the queue in first in, first out order. For valid messages, serialization and deserialization satisfy deserialize(serialize(m)) = m. Therefore, the above program outputs [m] when A receives the input m.
+We have (INPUT, prog, OUTPUT). INPUT contains the initial data for each process, prog is the program, and OUTPUT is
+the sequence of printed values. Each process only needs to execute its own statements in sequence, without waiting
+for other processes to finish. For example, \texttt{send} adds the message to the end of the receiver's queue. The
+sender does not need to wait for a reply from the receiver. \texttt{receive} takes messages from the queue in first
+in, first out order. For valid messages, serialization and deserialization satisfy
+\texttt{deserialize(serialize(m)) = m}. Therefore, the above program outputs \texttt{[m]} when A receives the input
+\texttt{m}.
 
 \bigbreak
 
@@ -168,9 +187,10 @@ We have (INPUT, prog, OUTPUT). INPUT contains the initial data for each process,
 \item
 \textbf{Tool and language selection.}
 
-We'll be writing everything in Rust, set up as a single Cargo workspace. Our compiler will also target Rust: it turns a program in our language into Rust source, which gets built with
-\texttt{cargo} and linked against a runtime library that we write ourselves. Using Rust for both the tools and the runtime means
-we can share the AST and value types between components, and the generated code can call straight into the runtime.
+We'll be writing everything in Rust, set up as a single Cargo workspace. Our compiler will also target Rust: it
+turns a program in our language into Rust source, which gets built with \texttt{cargo} and linked against a runtime
+library that we write ourselves. Using Rust for both the tools and the runtime means we can share the AST and value
+types between components, and the generated code can call straight into the runtime.
 
 \item
 \textbf{Incorporating existing tools.}
@@ -339,7 +359,5 @@ I commit to work and contribute equally to this project. \hfill --- Jim Brower
 
 \bibliographystyle{unsrt}
 \bibliography{references}
-
-
 
 \end{document}
