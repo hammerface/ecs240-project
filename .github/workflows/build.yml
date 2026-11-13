@@ -19,12 +19,14 @@ jobs:
         with:
           root_file: proposal.tex
 
-      - name: Publish to "latest" release
+      - name: Publish to "pdf" branch
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          gh release delete latest --yes --cleanup-tag || true
-          gh release create latest proposal.pdf \
-            --title "Latest build" \
-            --notes "Built from ${GITHUB_SHA::7}" \
-            --target "$GITHUB_SHA"
+          mkdir out && cp proposal.pdf out/ && cd out
+          git init -q -b pdf
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add proposal.pdf
+          git commit -q -m "Build from ${GITHUB_SHA::7}"
+          git push -f "https://x-access-token:${GH_TOKEN}@github.com/${GITHUB_REPOSITORY}.git" pdf
