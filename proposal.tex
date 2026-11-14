@@ -128,50 +128,38 @@ permits, potentially explore a consensus algorithm for fault tolerance.
 \item
 \textbf{Theory: Syntax and Semantics}
 
-Our language enables multiple processes to communicate through message queues and provides serialization and
-deserialization operations. To be more specific, process A receives the initial input. It serializes the input and
-sends the serialized data to B. After process B receives it, the data will be deserialized. Then, B will print out
-the original information.
+Our language enables multiple processes to communicate through message queues. Each process can send and receive integer messages. To be more specific, process A starts with an integer input, and sends it to process B. Process B receives the message and prints it out.
 
 \begin{verbatim}
 process A {
-    let msg = serialize(input);
-    send(B, msg);
+    send(B, input);
 }
 
 process B {
     receive(msg);
-    print(deserialize(msg));
+    print(msg);
 }
 \end{verbatim}
 
-We have string literal $s$, variables $x$ and $y$, and process name $p$. Then, we have $e$ for expressions,
-$S$ for statements, $T$ for processes, and $P$ for programs. The variable \texttt{input} is bound to the process's
-initial data from INPUT. The expression \texttt{info(e, e)} builds a message with two parts, and
-\texttt{receiveinfo(x, y)} receives such a message and binds its two parts to $x$ and $y$.
+We use $n$ for integer literals, $x$ for variables, and $p$ for process names. We use $e$ for integer expressions, $c$ for conditions, $S$ for statements, $L$ for one or more statements combine together, $T$ for processes, and $P$ for programs.
 
 \begin{verbatim}
-e ::= s | x | info(e, e) | serialize(e) | deserialize(e)
+e ::= n | x
 
-S ::= let(x, e)
-    | send(p, e)
-    | receive(x)
-    | receiveinfo(x, y)
-    | print(e)
-    | seq(S, S)
+c ::= e < e | e == e | e != e
 
-T ::= process(p, S)
+S ::= let x = e | send(p, e) | receive(x) | print(e) | while (c) { L } | if (c) { L } | if (c) {L} else { L }
 
-P ::= T | pair(P, P)
+L ::= S | S L
+
+T ::= process p { L }
+
+P ::= T | T P
+
 \end{verbatim}
 
-We have (INPUT, prog, OUTPUT). INPUT contains the initial data for each process, prog is the program, and OUTPUT is
-the sequence of printed values. Each process only needs to execute its own statements in sequence, without waiting
-for other processes to finish. For example, \texttt{send} adds the message to the end of the receiver's queue. The
-sender does not need to wait for a reply from the receiver. \texttt{receive} takes messages from the queue in first
-in, first out order. For valid messages, serialization and deserialization satisfy
-\texttt{deserialize(serialize(m)) = m}. Therefore, the above program outputs \texttt{[m]} when A receives the input
-\texttt{m}.
+
+We have $(INPUT, prog, OUTPUT)$, which $INPUT$ is the values assigned to variables in each process, $prog$ is the program, and $OUTPUT$ is the sequence of printed values. Each process only needs to execute its own statements in sequence, without waiting for other processes to finish. \texttt{send} adds the message to the end of the receiver's queue. The sender does not need to wait for a reply from the receiver. \texttt{receive} takes messages from the queue in first in first out order and then store and print them out. When the condition is true, a while loop repeatedly executes its body; an if else statement selects and executes the corresponding branch based on its condition. 
 
 \bigbreak
 
