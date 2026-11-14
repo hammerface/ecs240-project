@@ -175,10 +175,8 @@ We have $(INPUT, prog, OUTPUT)$, which $INPUT$ is the values assigned to variabl
 \item
 \textbf{Tool and language selection.}
 
-We'll be writing everything in Rust, set up as a single Cargo workspace. Our compiler will also target Rust: it
-turns a program in our language into Rust source, which gets built with \texttt{cargo} and linked against a runtime
-library that we write ourselves. Using Rust for both the tools and the runtime means we can share the AST and value
-types between components, and the generated code can call straight into the runtime.
+We'll be writing everything in Rust. Using Rust for both the tools and the runtime means we can share the AST and
+value types between components, and the code our compiler generates can call straight into the runtime.
 
 \item
 \textbf{Incorporating existing tools.}
@@ -187,10 +185,8 @@ Mostly from scratch. The instructor said it's fine to use an existing lexer and 
 LALRPOP\cite{lalrpop}, which is the most common parser generator in the Rust ecosystem.
 
 \medbreak
-Beyond that, we'd like to stick to the Rust standard library. Message passing is the core feature of our language,
-so we don't want to use an existing actor or channel crate to do it for us. Mailboxes will be built from
-\texttt{std::sync} primitives, serialization will be our own code, and if we get to communication between OS
-processes or machines we'll use \texttt{std::net}.
+Beyond that, we'll stick to the Rust standard library: message passing is the core feature of our language, so we
+don't want an existing actor or channel crate doing it for us.
 
 \item
 \textbf{Architecture of your code.}
@@ -235,9 +231,9 @@ in Section 3.
 \medbreak
 The interpreter is meant to be a direct implementation of the semantics. It runs every process in a single thread
 and keeps track of each process's remaining statements, its variables, and its message queue. A scheduler picks
-which process takes the next step. We'd like to support a few schedulers: round-robin, random with a seed, and for
-small programs, trying every interleaving to get the full set of possible outputs. Since the interpreter sees
-everything at once, it can also tell us when the program deadlocks.
+which process takes the next step. We'll support round-robin and random with a seed, and as a reach goal, trying
+every interleaving of small programs to get the full set of possible outputs. Since the interpreter sees everything
+at once, it can also tell us when the program deadlocks.
 
 \medbreak
 The compiler turns each \texttt{process} into a Rust function, with \texttt{send}, \texttt{receive},
@@ -249,15 +245,11 @@ in memory and later swap in a version that sends messages between OS processes o
 \item
 \textbf{Development effort.}
 
-Looking at Figure~\ref{fig:architecture}, we need to write the grammar and AST, the interpreter
-and its schedulers, the runtime, the code generator, and a small command line tool that either runs a program with
-the interpreter or compiles it. We'll also need a set of example programs to test with. Since our programs are
-nondeterministic, we can't just compare a compiled program against one expected output. Our plan is to run compiled
-programs many times and check that every output they produce is one of the outputs the interpreter says is possible.
-
-\medbreak
-We will compile directly from the AST at first. If time permits, we'd like to add a small IR and a couple of
-simple optimizations such as constant folding.
+Looking at Figure~\ref{fig:architecture}, we need to write the grammar and AST, the interpreter and its schedulers,
+the runtime, the code generator, and the CLI. Since our programs are nondeterministic, most of our tests will use
+programs whose output doesn't depend on scheduling, so compiled and interpreted output can be compared directly.
+With the exhaustive scheduler, we could also check that every compiled output is one the interpreter says is
+possible.
 
 \medbreak
 We are not planning to handle crashed processes or lost messages, or encrypt messages (if
@@ -267,18 +259,11 @@ creating new processes at run time, is also out of scope for now.
 \item
 \textbf{Challenges.}
 
-The biggest challenge is probably nondeterminism. The same program can behave differently from run to run, which
-makes bugs hard to reproduce. That's a big part of why we want the interpreter to have seeded and exhaustive
-schedulers. A related issue is that a compiled program that deadlocks will just hang. We can try to detect this in
-the runtime, but if that gets complicated we'll fall back to a timeout in our tests.
-
-\medbreak
-We're also expecting some friction generating Rust code that the Rust compiler accepts, mostly because of ownership
-rules. We plan to keep the generated code simple (cloning values where needed) rather than efficient. If LALRPOP
-ends up being a poor fit, our grammar is small enough that we could write a recursive descent parser by hand. The
-syntax in Section 3 is still a draft, so we'll try to keep changes contained to the parser and the AST. Finally,
-networking adds a lot of new problems (finding other processes, connecting, partial failures), so we'll only
-attempt it once the in-memory version works.
+In the interpreter, bugs that depend on interleaving may be rare and hard to reproduce, which the seeded scheduler
+should help with. In the runtime, concurrency bugs of our own (like a lost wakeup in a mailbox) would make correct
+programs hang, so we'll compare against the interpreter to tell these apart from real deadlocks. Networking adds
+problems like finding other processes and partial failures, so we'll only attempt it once the in-memory version
+works.
 
 \end{enumerate}
 
@@ -291,28 +276,33 @@ attempt it once the in-memory version works.
 \item
 \textbf{Collaboration plan}
 
-% How components are divided among team members.
+We'll split the work into three tracks that can be developed in parallel: the front end and interpreter, the
+runtime, and the code generator, with one person leading each. Testing and the final report will be shared by
+everyone. To keep the tracks independent, we'll agree on the AST and the runtime's interface for \texttt{send} and
+\texttt{receive} in the first week.
 
-% Group meetings (at least twice a week suggested) and communication platform.
+\medbreak
+We'll meet three times a week over Discord, which we'll also use for day-to-day communication.
 
 \medbreak
 \textbf{Timeline:}
 
 \medbreak
 Week of Nov 16:
-\newline
+\newline Lexer, parser and AST. Agree on the runtime interface. Start the runtime's mailboxes.
 
 \medbreak
 Week of Nov 23:
-\newline
+\newline Interpreter with a round-robin scheduler. Finish the runtime. Start the code generator. Have a small
+program running end to end through the interpreter.
 
 \medbreak
 Week of Nov 30:
-\newline
+\newline Code generator working against the runtime. Seeded scheduler. Tests. Presentation.
 
 \medbreak
 Week of Dec 7:
-\newline
+\newline Integration, bug fixes and the final report.
 
 \medbreak
 \textbf{Commitment statement:}
@@ -335,9 +325,18 @@ I commit to work and contribute equally to this project. \hfill --- Jim Brower
 \item
 \textbf{Conclusion and questions for feedback}
 
-% What happens if the project is successful? Why is it exciting/important?
+Concurrency built on shared memory, threads and locks is a common source of race conditions and deadlocks. Message
+passing avoids much of this by not sharing state at all, which is why it has done so well in languages like Erlang.
+If our project is successful, we'll have a small language where message passing is the only way processes interact,
+an interpreter that can replay any scheduling of a program, and a compiler that turns the same program into real
+concurrent Rust code. What we find most interesting is that the same program runs in two very different ways: in
+the interpreter, every scheduling decision is ours and can be replayed, while in the compiled program those
+decisions are made by the operating system. The semantics in Section 3 is what tells us whether the two agree.
 
-% Open questions and things to get feedback on.
+\medbreak
+Our main question is which of our reach goals would be most worth pursuing if we have time: networking over TCP, an
+IR and optimizations, the exhaustive scheduler, or writing a consensus protocol like Raft in our language. We'd
+appreciate any feedback on which of these fits the course best.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%   References cited   %%%%%
