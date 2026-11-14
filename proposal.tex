@@ -11,6 +11,7 @@
 \usepackage{graphicx}
 \usepackage{url}
 \usepackage{hyperref}
+\usepackage{needspace}
 \usepackage{tikz}
 \usetikzlibrary{positioning, arrows.meta}
 
@@ -22,7 +23,7 @@
 \begin{document}
 
 \begin{center}
-{\Large TODO: Project Title}
+{\Large Messy: A Small Message-Passing Language}
 
 \medbreak
 {\Large Project Proposal}
@@ -41,11 +42,13 @@
 %%%%%   Introduction and motivation          %%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
+\needspace{4\baselineskip}
 \item
 \textbf{Introduction and motivation}
 
 \begin{enumerate}[label*=\arabic*.]
 
+\needspace{4\baselineskip}
 \item
 \textbf{Problem domain and motivation.}
 
@@ -56,6 +59,7 @@ conditions, deadlock, and unpredictable operations. Many platforms have switched
 with ``actors''\cite{armstrong2003making,vinoskierlang2012}, and we'd like to explore a conceptual language with
 native support for this type of system.
 
+\needspace{4\baselineskip}
 \item
 \textbf{Proposed language.}
 
@@ -64,6 +68,7 @@ message passing. Beyond primitives and standard control flow operations, the cor
 process can perform tasks and send/receive messages to and from other processes. Example syntax and a draft grammar
 are given in Section 3.
 
+\needspace{4\baselineskip}
 \item
 \textbf{Proposed tool.}
 
@@ -74,6 +79,7 @@ in the custom language, and the output would be a separate Rust file which could
 interact with the tool through a lightweight CLI program, either running the interpreter on a program written in
 the toy language, or using the transpiler to convert it to a Rust file.
 
+\needspace{4\baselineskip}
 \item
 \textbf{Scope and related work.}
 
@@ -93,6 +99,7 @@ language whose native syntax is entirely built around this framework.
 %%%%%   Goals   %%%%%
 %%%%%%%%%%%%%%%%%%%%%
 
+\needspace{4\baselineskip}
 \item
 \textbf{Goals}
 
@@ -126,6 +133,7 @@ permits, we'd potentially explore writing a consensus protocol like Raft in our 
 %%%%%   Theory part: Syntax and Semantics    %%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
+\needspace{4\baselineskip}
 \item
 \textbf{Theory: Syntax and Semantics}
 
@@ -149,6 +157,7 @@ $c$ for conditions, $S$ for statements, $L$ for a sequence of one or more statem
 for programs. Arithmetic is on integers, with \texttt{*} binding tighter than \texttt{+} and \texttt{-}, and all
 three left-associative.
 
+\begin{minipage}{\linewidth}
 \begin{verbatim}
 e ::= n | x | e + e | e - e | e * e | (e)
 
@@ -168,6 +177,7 @@ T ::= process p { L }
 
 P ::= T | T P
 \end{verbatim}
+\end{minipage}
 
 We have (INPUT, prog, OUTPUT), where INPUT is the initial values of variables in each process, prog is the program,
 and OUTPUT is the set of possible sequences of printed values. OUTPUT is a set because when more than one process
@@ -184,17 +194,20 @@ statement selects and executes the corresponding branch based on its condition.
 %%%%%   Implementation plan   %%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
+\needspace{4\baselineskip}
 \item
 \textbf{Implementation plan}
 
 \begin{enumerate}[label*=\arabic*.]
 
+\needspace{4\baselineskip}
 \item
 \textbf{Tool and language selection.}
 
 We'll be writing everything in Rust. Using Rust for both the tools and the runtime means we can share the AST and
 value types between components, and the code our compiler generates can call straight into the runtime.
 
+\needspace{4\baselineskip}
 \item
 \textbf{Incorporating existing tools.}
 
@@ -205,6 +218,7 @@ LALRPOP\cite{lalrpop}, which is the most common parser generator in the Rust eco
 Beyond that, we'll stick to the Rust standard library: message passing is the core feature of our language, so we
 don't want an existing actor or channel crate doing it for us.
 
+\needspace{4\baselineskip}
 \item
 \textbf{Architecture of your code.}
 
@@ -259,6 +273,7 @@ own thread and keeps a mailbox for each one (a queue behind a mutex, with a cond
 can sleep until something arrives). We'll hide message delivery behind an interface, so we can start with everything
 in memory and later swap in a version that sends messages between OS processes over TCP.
 
+\needspace{4\baselineskip}
 \item
 \textbf{Development effort.}
 
@@ -273,6 +288,7 @@ We are not planning to handle crashed processes or lost messages, or encrypt mes
 that's ever needed it belongs at the network layer, like TLS). Anything not in the grammar from Section 3, such as
 creating new processes at run time, is also out of scope for now.
 
+\needspace{4\baselineskip}
 \item
 \textbf{Challenges.}
 
@@ -290,6 +306,7 @@ works.
 %%%%%   Collaboration plan   %%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
+\needspace{4\baselineskip}
 \item
 \textbf{Collaboration plan}
 
@@ -339,6 +356,7 @@ I commit to work and contribute equally to this project. \hfill --- Jim Brower
 %%%%%   Conclusion and questions for feedback   %%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
+\needspace{4\baselineskip}
 \item
 \textbf{Conclusion and questions for feedback}
 
