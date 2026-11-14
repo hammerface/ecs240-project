@@ -53,25 +53,26 @@ Our project's application domain is concurrent and distributed systems computing
 modeling concurrency using message passing as a means to address many of the issues with traditional shared-memory
 frameworks. Using threads and locks to assure data correctness historically led to many issues like race
 conditions, deadlock, and unpredictable operations. Many platforms have switched to a message passing framework
-with ``actor'' agents and fault tolerance, and we'd like to explore a conceptual language with native support for
-this type of system.
+with ``actors''\cite{armstrong2003making,vinoskierlang2012}, and we'd like to explore a conceptual language with
+native support for this type of system.
 
 \item
 \textbf{Proposed language.}
 
-We plan to design a custom language built around an actor agent model with the capability for agents to communicate
-via message passing. Beyond primitives and standard control flow operations, the core feature would be maintaining
-lightweight agents, each having the ability to perform tasks and send/receive messages from other agents.
+We plan to design a custom language built around the actor model, where lightweight processes communicate only via
+message passing. Beyond primitives and standard control flow operations, the core feature would be that each
+process can perform tasks and send/receive messages to and from other processes. Example syntax and a draft grammar
+are given in Section 3.
 
 \item
 \textbf{Proposed tool.}
 
-The interpreter for our custom language would directly evaluate the program, printing the output of simulated agent
-interactions to the terminal. We also plan to implement a transpiler (code generator) for our language, taking a
-program in the toy language and converting it to Rust code. The input of the transpiler would be a program in the
-custom language, as an AST representation, and the output would be a separate Rust file which could be compiled and
-run. A user would interact with the tool through a lightweight CLI program, either running the interpreter on a
-program written in the toy language, or using the transpiler to convert it to a Rust file.
+The interpreter for our custom language would directly evaluate the program, printing the output of the simulated
+process interactions to the terminal. We also plan to implement a transpiler (code generator) for our language,
+taking a program in the toy language and converting it to Rust code. The input of the transpiler would be a program
+in the custom language, and the output would be a separate Rust file which could be compiled and run. A user would
+interact with the tool through a lightweight CLI program, either running the interpreter on a program written in
+the toy language, or using the transpiler to convert it to a Rust file.
 
 \item
 \textbf{Scope and related work.}
@@ -99,25 +100,25 @@ language whose native syntax is entirely built around this framework.
 \textbf{Minimum goal:}
 \newline
 The minimum goal is to have a working lexer and parser that would generate an AST from a text file written in our
-toy language. The interpreter would support concurrent actor execution with asynchronous message passing in a
-single thread, and the transpiler would convert to Rust's native concurrency primitives. We would implement at
-least one scheduler. A user would have access to a simple CLI that supports running the interpreter and transpiler,
-and a few simple programs to test with.
+toy language. The interpreter would support concurrent process execution with asynchronous message passing in a
+single thread, and the transpiler would generate Rust code that runs on our runtime. We would implement at least
+one scheduler. A user would have access to a simple CLI that supports running the interpreter and transpiler, and a
+few simple programs to test with.
 
 \medbreak
 \textbf{Target goal:}
 \newline
-The target goal would additionally have our language support more features like standard control flow and a few
-primitive data types. Our interpreter would have the option to use a few different schedulers. We would also aim to
-support a few more meaningful agent requests/tasks (like modifying its private data, sending information, messaging
-other agents, etc.).
+The target goal would additionally have our interpreter support a seeded random scheduler, so that any run can be
+replayed exactly. We would also extend the language beyond integers with a few more value types for messages (such
+as strings or pairs).
 
 \medbreak
 \textbf{Reach goal:}
 \newline
 Our reach goal would include everything from the minimum and target goals, but also have the processes communicate
-over the network through TCP. We would also try to include some minor optimizations for the compiler, and if time
-permits, potentially explore a consensus algorithm for fault tolerance.
+over the network through TCP. We would also try to include an exhaustive scheduler for the interpreter that tries
+every interleaving, and a small IR with simple optimizations such as constant folding for the compiler. If time
+permits, we'd potentially explore writing a consensus protocol like Raft in our language.
 
 \bigbreak
 
@@ -128,7 +129,9 @@ permits, potentially explore a consensus algorithm for fault tolerance.
 \item
 \textbf{Theory: Syntax and Semantics}
 
-Our language enables multiple processes to communicate through message queues. Each process can send and receive integer messages. To be more specific, process A starts with an integer input, and sends it to process B. Process B receives the message and prints it out.
+Our language enables multiple processes to communicate through message queues. Each process can send and receive
+integer messages. To be more specific, process A starts with an integer input, and sends it to process B. Process B
+receives the message and prints it out.
 
 \begin{verbatim}
 process A {
@@ -141,25 +144,39 @@ process B {
 }
 \end{verbatim}
 
-We use $n$ for integer literals, $x$ for variables, and $p$ for process names. We use $e$ for integer expressions, $c$ for conditions, $S$ for statements, $L$ for one or more statements combine together, $T$ for processes, and $P$ for programs.
+We use $n$ for integer literals, $x$ for variables, and $p$ for process names. We use $e$ for integer expressions,
+$c$ for conditions, $S$ for statements, $L$ for a sequence of one or more statements, $T$ for processes, and $P$
+for programs. Arithmetic is on integers, with \texttt{*} binding tighter than \texttt{+} and \texttt{-}, and all
+three left-associative.
 
 \begin{verbatim}
-e ::= n | x
+e ::= n | x | e + e | e - e | e * e | (e)
 
 c ::= e < e | e == e | e != e
 
-S ::= let x = e | send(p, e) | receive(x) | print(e) | while (c) { L } | if (c) { L } | if (c) {L} else { L }
+S ::= let x = e;
+    | send(p, e);
+    | receive(x);
+    | print(e);
+    | while (c) { L }
+    | if (c) { L }
+    | if (c) { L } else { L }
 
 L ::= S | S L
 
 T ::= process p { L }
 
 P ::= T | T P
-
 \end{verbatim}
 
-
-We have $(INPUT, prog, OUTPUT)$, which $INPUT$ is the values assigned to variables in each process, $prog$ is the program, and $OUTPUT$ is the sequence of printed values. Each process only needs to execute its own statements in sequence, without waiting for other processes to finish. \texttt{send} adds the message to the end of the receiver's queue. The sender does not need to wait for a reply from the receiver. \texttt{receive} takes messages from the queue in first in first out order and then store and print them out. When the condition is true, a while loop repeatedly executes its body; an if else statement selects and executes the corresponding branch based on its condition. 
+We have (INPUT, prog, OUTPUT), where INPUT is the initial values of variables in each process, prog is the program,
+and OUTPUT is the set of possible sequences of printed values. OUTPUT is a set because when more than one process
+sends to the same receiver, the order its messages arrive in depends on how the processes are scheduled. Each
+process only needs to execute its own statements in sequence, without waiting for other processes to finish.
+\texttt{send} adds the message to the end of the receiver's queue. The sender does not need to wait for a reply
+from the receiver. \texttt{receive} takes the first message from the queue, in first in, first out order, and
+stores it in the given variable. When the condition is true, a while loop repeatedly executes its body; an if else
+statement selects and executes the corresponding branch based on its condition.
 
 \bigbreak
 
@@ -236,8 +253,8 @@ every interleaving of small programs to get the full set of possible outputs. Si
 at once, it can also tell us when the program deadlocks.
 
 \medbreak
-The compiler turns each \texttt{process} into a Rust function, with \texttt{send}, \texttt{receive},
-\texttt{serialize} and \texttt{deserialize} becoming calls into the runtime. The runtime runs each process on its
+The compiler turns each \texttt{process} into a Rust function, with \texttt{send} and \texttt{receive} becoming
+calls into the runtime. The runtime runs each process on its
 own thread and keeps a mailbox for each one (a queue behind a mutex, with a condition variable so \texttt{receive}
 can sleep until something arrives). We'll hide message delivery behind an interface, so we can start with everything
 in memory and later swap in a version that sends messages between OS processes over TCP.
